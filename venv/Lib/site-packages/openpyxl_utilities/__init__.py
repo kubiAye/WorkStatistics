@@ -1,0 +1,294 @@
+from shutil import get_terminal_size
+from openpyxl.worksheet.worksheet import Worksheet, Cell
+import string
+
+name = "openpyxl_utilities"
+
+__all__ = [
+	'list_values',
+	'adjust_col_width',
+	'print_sheet',
+	'empty_row',
+	'max_length_of_column',
+	'transpose',
+	'sort_sheet_by',
+	'apply_format',
+	'col_to_num',
+	'num_to_col'
+]
+
+
+def list_values(line):
+	'''Given a row of cells (a column works too), returns a list of said cells' values'''
+	return [cell.value for cell in line]
+
+
+def adjust_col_width(ws, min_width=None, max_width=None):
+	'''Given a worksheet, will adjusts it's columns' widths to fit the longest cell's content. 
+	Max and min column width can be given.'''
+
+	if min_width and max_width:
+		if min_width > max_width:
+			raise ValueError("min_width cannot be grater than max_width.")
+
+	if not min_width:
+		if max_width and max_width < 8:
+			min_width = max_width
+		else:
+			min_width = 8
+
+	if not max_width:
+		if min_width > 30:
+			max_width = min_width
+		else:
+			max_width = 30
+
+	widths = []
+	for col in ws.columns:
+		max_lenght = max_lenght_of_column(col)
+
+		ws.column_dimensions[col[0].column].width = max(min((max_lenght + 1), max_width), min_width)
+
+	return widths
+
+
+def print_sheet(ws, offset=0, print_top=True, print_side=True, spacing=1, exclude_columns=[], beg_column=1, end_column=0):
+	'''Given a worksheet, will print it's cells on screen.'''
+	for c in exclude_columns:
+		if isinstance(c, int):
+			c = num_to_col(c)
+		elif c.isdigit():
+			c = num_to_col(int(c))
+
+	beg_column = col_to_num(beg_column)
+	end_column = col_to_num(end_column)
+
+	if beg_column > end_column and end_column != 0:
+		raise ValueError("Begining column must be before ending column.")
+
+	if beg_column < 0 or end_column < 0:
+		raise ValueError("Begining and/or ending columns can't be negative.")
+
+	end_column = num_to_col(end_column)
+
+	def print_hr(character, end):
+		if print_side:
+			print(character * side_width, end=chr(449))
+		else:
+			print(chr(449), end="")
+
+		if offset:
+			print("<", end="")
+
+		for w in cols_to_print_w:
+			print(character * (w+1), end=end)
+		if overflow:
+			print("\b>")
+		else:
+			print("")
+
+	overflow = False
+
+	cols_to_print = []
+	console_width = get_terminal_size()[0] - 1
+	if print_side:
+		side_width = len(str(ws.max_row)) + 1
+		width_to_print = 1 + side_width
+	else:
+		width_to_print = 0
+	if offset:
+		width_to_print += 1
+	columns = []
+	cols_to_print_w = []
+	letters_to_print = []
+	for col in ws.columns:
+		columns.append((list(col), col[0].column))
+	
+	while beg_column > 1:
+		beg_column -= 1
+		columns.pop(0)
+
+	while width_to_print < console_width and len(columns) > (offset):
+		column, letter = columns.pop(offset)
+		if letter not in exclude_columns:
+			cols_to_print.append(column)
+			width = max_lenght_of_column(column)
+			width_to_print += ( width + 3)
+			cols_to_print_w.append(width)
+			letters_to_print.append(letter)	
+		if letter == end_column:
+			break
+
+	if width_to_print > console_width:
+		overflow = True
+		cols_to_print.pop()
+		width_to_print -= (cols_to_print_w.pop() +3)
+		letters_to_print.pop()
+
+	rows_to_print = transpose(cols_to_print)
+
+	print(("Worksheet: " + ws.title).center(width_to_print - len(cols_to_print) , "="))
+
+	if print_top:
+		if print_side:
+			print(" " * side_width, end=chr(449))
+		else:
+			print("|", end="")
+
+		if offset:
+			print("<", end="")
+
+		for letter, width in zip(letters_to_print, cols_to_print_w):
+			print(letter.center(width + 1, " "), end="|")
+		if overflow:
+			print("\b>")
+		else:
+			print("")
+		print_hr("=","+")
+
+
+
+	i = 1
+	for row in rows_to_print:
+		if not empty_row(row):
+			if print_side:
+				print(str(i).ljust(side_width," "), end=chr(449))
+				i+=1
+			else:
+				print("|", end="")
+
+			if offset:
+				print("<", end="")
+
+			for cell, width in zip(row, cols_to_print_w):
+				if cell.value != None:
+					print(str(cell.value).ljust(width, " "), end=" |")
+				else:
+					print(" " * (width+1), end="|")
+			if overflow:
+				print("\b>")
+			else:
+				print("")
+			print_hr("-", "+")
+
+
+def empty_row(row):
+	'''Given a row, returns True if all it's cells are empty.'''
+	empty = True
+	for cell in row:
+		if cell.value != None:
+			empty=False
+	return empty
+
+
+def max_lenght_of_column(col):
+	'''Given a column, will return the length (in number of characters) of the cell with the  
+	longest length in the column.'''
+	width = 0
+	for cell in col:
+		try: 
+			if len(str(cell.value)) > width:
+				width = len(str(cell.value))
+		except:
+			pass
+	return width
+
+
+def transpose(cols):
+	'''Given a matrix, returns the transpose of said matrix.'''
+	rows = []
+	for i in range(len(cols[0])):
+		row = []
+		for col in cols:
+			row.append(col[i])
+		rows.append(row)
+	return rows
+
+
+def sort_sheet_by(ws, column_of_order=0, descending=False, fixed_headers=True):
+	'''Given a sheet, will sort the sheet's rows depending of the said row's value (first row by default) 
+	in ascending order (by default). The headers (first row) will remain static by default.'''
+	sort = []
+	rows = list(ws.rows)
+	column_of_order = col_to_num(column_of_order) - 1
+	if fixed_headers:
+		sort.append(list_values(rows.pop(0)))
+	for row in sorted(rows, key=lambda x: x[column_of_order].value, reverse=descending):
+		sort.append(list_values(row))
+	
+	clear_sheet(ws)
+	for row in sort:
+		ws.append(row)
+
+
+def apply_format(ws, font=None, fill=None, border=None, h_font=None, h_fill=None, h_border=None):
+	'''Applies a given format (font, fill and or border) to all the cells from a given worksheet. 
+	If a different format is desired for the headers (first row) h_font, h_fill, h_border can be used.'''
+	is_headers = True
+	if font or fill or border or h_font or h_fill or h_border:
+		for row in ws.rows:
+			for cell in row:
+				if is_headers:
+					if h_font:
+						cell.font = h_font
+					elif font:
+						cell.font = font
+					
+					if h_fill:
+						cell.fill = h_fill
+					elif fill:
+						cell.fill = fill
+					
+					if h_border:
+						cell.border = h_border
+					elif border:
+						cell.border = border				
+				else:
+					if font:
+						cell.font = font
+					if fill:
+						cell.fill = fill
+					if border:
+						cell.border = border
+			is_headers = False
+
+
+def col_to_num(col):
+	if isinstance(col, int):
+		return col
+	elif col.isdigit():
+		return col_to_num(int(col))
+	num = 0
+	for c in col:
+		if c in string.ascii_letters:
+			num = num * 26 + (ord(c.upper()) - ord('A')) + 1
+		else:
+			raise ValueError("Column name must be either letters or numbers.")
+	return num
+
+def num_to_col(n):
+	if isinstance(n, int):
+		s = ""
+		while n > 0:
+			n, remainder = divmod(n - 1, 26)
+			s = chr(65 + remainder) + s
+		return s
+	elif n.isdigit(): 
+		return num_to_col(int(n))
+	else:
+		return n
+	
+
+def clear_sheet(ws):
+	for row in ws.rows:
+		ws._current_row -= 1
+		for cell in row:
+			cell.value = None
+
+
+def copy_with_name(source_ws, name):
+	wb = source_ws.parent
+	wb.copy_worksheet(source_ws)
+	new_sheet = wb[[x for x in wb.sheetnames if source_ws.title in x and "Copy" in x][0]]
+	new_sheet.title = name
+	return new_sheet

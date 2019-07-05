@@ -1,0 +1,23 @@
+Metadata-Version: 2.0
+Name: fortnum
+Version: 0.0.9
+Summary: Singletons using class syntax
+Home-page: https://github.com/SverkerSbrg/fortnum
+Author: Sverker Sjöberg
+Author-email: UNKNOWN
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+
+UNKNOWN
+
+

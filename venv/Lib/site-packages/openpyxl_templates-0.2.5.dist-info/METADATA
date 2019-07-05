@@ -1,0 +1,63 @@
+Metadata-Version: 2.1
+Name: openpyxl-templates
+Version: 0.2.5
+Summary: Openpyxl-templates is an extention to openpyxl which simplifies reading and writing excelfiles by formalizing their structure into templates.
+Home-page: https://github.com/SverkerSbrg/openpyxl-templates
+Author: Sverker Sjöberg
+Author-email: UNKNOWN
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Dist: openpyxl
+Requires-Dist: fortnum
+
+.. image:: https://badge.fury.io/py/openpyxl-templates.svg
+    :target: https://badge.fury.io/py/openpyxl-templates
+
+.. image:: https://readthedocs.org/projects/openpyxl-templates/badge/?version=latest
+    :target: http://openpyxl-templates.readthedocs.io/en/latest/?badge=latest
+
+==============================
+Welcome to openpyxl-templates!
+==============================
+
+Openpyxl-templates is an extention to `openpyxl <http://openpyxl.readthedocs.io/>`_ which simplifies reading and writing excelfiles by formalizing their structure into templates. The package has two main components:
+
+    1. The ``TemplatedWorkbook`` which describe the excel file
+    2. The ``TemplatedSheets`` which describe the individual sheets within the file
+
+The package is build for developers to be able to implement their own templates but also provides one useful templated sheet. The ``TableSheet`` which makes it significantly easier to read and write data from excel data tabels such as this one:
+
+.. image:: docs/examples/fruit_lovers.png
+
+The TableSheet provides an easy way of defining columns and handles both styling and conversion to and from excel. See quickstart for a demo.
+
+Github
+    https://github.com/SverkerSbrg/openpyxl-templates
+
+Documentation
+    http://openpyxl-templates.readthedocs.io/en/latest/
+
+pypi
+    https://pypi.python.org/pypi/openpyxl-templates
+
+openpyxl
+    https://openpyxl.readthedocs.io/en/default/
+
+
+If you have any questions or ideas regarding the package feel free to reach out to me via GitHub.
+
+
+.. warning::
+
+    This package is still in beta. The api may still be subject to change and the documentation is patchy.
+
